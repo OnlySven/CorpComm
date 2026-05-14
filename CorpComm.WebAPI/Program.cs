@@ -4,7 +4,11 @@ using CorpComm.Application.Features.Users.Commands;
 using CorpComm.Domain.Repositories;
 using CorpComm.Infrastructure.Repositories;
 using CorpComm.Application.Common.Behaviors;
+using CorpComm.Infrastructure.Configuration;
+using CorpComm.Infrastructure.Services;
+using CorpComm.Application.Common.Services;
 using CorpComm.WebAPI.Hubs;
+using Scalar.AspNetCore;
 using FluentValidation;
 using MediatR;
 
@@ -19,12 +23,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IMeetingRepository, MeetingRepository>();
+builder.Services.AddScoped<IInvitationRepository, InvitationRepository>();
 
 builder.Services.AddMediatR(cfg => 
 {
     cfg.RegisterServicesFromAssembly(typeof(CorpComm.Application.Features.Users.Commands.CreateUserCommand).Assembly);
     cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 });
+
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
+builder.Services.AddScoped<InvitationSender, SmtpEmailInvitationSender>();
 
 // Автоматична реєстрація всіх валідаторів з Application шару
 builder.Services.AddValidatorsFromAssembly(typeof(CorpComm.Application.Features.Users.Commands.CreateUserCommand).Assembly);
@@ -52,6 +60,7 @@ app.UseStaticFiles();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.MapPost("/api/users", async (CreateUserCommand command, IMediator mediator) =>
@@ -97,6 +106,21 @@ app.MapPost("/api/meetings", async (CorpComm.Application.Features.Meetings.Comma
         return Results.BadRequest(new { Error = ex.Message });
     }
 });
+
+app.MapPost("/api/meetings/invite", async (CorpComm.Application.Features.Meetings.Commands.SendInvitationCommand command, MediatR.IMediator mediator) =>
+{
+    try
+    {
+        await mediator.Send(command);
+        
+        return Results.Ok(new { Message = $"Запрошення успішно відправлено на {command.GuestEmail}" });
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(new { Error = ex.Message });
+    }
+})
+.WithName("SendMeetingInvitation");
 
 app.UseHttpsRedirection();
 

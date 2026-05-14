@@ -7,6 +7,8 @@ namespace CorpComm.Infrastructure.Repositories;
 public class MeetingRepository : IMeetingRepository
 {
     private readonly ApplicationDbContext _context;
+    public async Task<Meeting?> GetByIdAsync(Guid id) 
+    => await _context.Meetings.FindAsync(id);
 
     public MeetingRepository(ApplicationDbContext context)
     {

@@ -54,9 +54,6 @@ var app = builder.Build();
 
 app.UseCors("AllowAll");
 
-app.UseDefaultFiles();
-app.UseStaticFiles();
-
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -94,7 +91,7 @@ app.MapPost("/api/meetings", async (CorpComm.Application.Features.Meetings.Comma
     try
     {
         var meetingId = await mediator.Send(command);
-        var meetingLink = $"http://localhost:5046/?room={meetingId}"; 
+        var meetingLink = $"http://localhost:5173/?room={meetingId}"; 
         
         return Results.Ok(new { 
             MeetingId = meetingId, 

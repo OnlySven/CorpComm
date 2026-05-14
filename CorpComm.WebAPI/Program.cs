@@ -86,6 +86,23 @@ app.MapPost("/api/users", async (CreateUserCommand command, IMediator mediator) 
     }
 });
 
+app.MapGet("/api/meetings/{roomId}/token", async (string roomId, string userName, MediatR.IMediator mediator) =>
+{
+    try
+    {
+        // Відправляємо запит у MediatR
+        var query = new CorpComm.Application.Features.Meetings.Queries.GetMeetingTokenQuery(roomId, userName);
+        var token = await mediator.Send(query);
+        
+        // Повертаємо токен у форматі JSON: { "token": "eyJhbGciOi..." }
+        return Results.Ok(new { Token = token });
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(new { Error = ex.Message });
+    }
+});
+
 app.MapPost("/api/meetings", async (CorpComm.Application.Features.Meetings.Commands.CreateMeetingCommand command, IMediator mediator) =>
 {
     try

@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: corpcomm_postgres
+    environment:
+      POSTGRES_USER: corpcomm_user
+      POSTGRES_PASSWORD: corpcomm_password
+      POSTGRES_DB: corpcomm_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: corpcomm_redis
+    ports:
+      - "6379:6379"
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+  
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: corpcomm_livekit
+    command: '--dev --bind 0.0.0.0 --node-ip=192.168.0.100 --keys "devkey: secret_key_for_development_128_bits"'
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "7882:7882/udp"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:

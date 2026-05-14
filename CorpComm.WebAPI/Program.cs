@@ -18,6 +18,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IMeetingRepository, MeetingRepository>();
 
 builder.Services.AddMediatR(cfg => 
 {
@@ -71,6 +72,24 @@ app.MapPost("/api/users", async (CreateUserCommand command, IMediator mediator) 
                 Field = e.PropertyName, 
                 Error = e.ErrorMessage 
             }) 
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(new { Error = ex.Message });
+    }
+});
+
+app.MapPost("/api/meetings", async (CorpComm.Application.Features.Meetings.Commands.CreateMeetingCommand command, IMediator mediator) =>
+{
+    try
+    {
+        var meetingId = await mediator.Send(command);
+        var meetingLink = $"http://localhost:5046/?room={meetingId}"; 
+        
+        return Results.Ok(new { 
+            MeetingId = meetingId, 
+            Link = meetingLink 
         });
     }
     catch (Exception ex)

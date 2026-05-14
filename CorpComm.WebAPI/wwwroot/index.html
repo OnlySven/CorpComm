@@ -16,6 +16,9 @@
     
     <div class="controls">
         <input type="text" id="userName" placeholder="Твоє ім'я" />
+        <input type="text" id="meetingTitle" placeholder="Назва зустрічі (опціонально)" />
+        <button id="createMeetingBtn" style="background-color: #28a745; color: white;">Створити зустріч</button>
+        <hr>
         <button id="joinBtn">Приєднатися до кімнати</button>
         <button id="disconnectBtn">Від'єднатися</button>
         <button id="startVideoBtn">Увімкнути камеру</button>
@@ -80,18 +83,39 @@ document.getElementById("stopVideoBtn").addEventListener("click", () => {
 // 3. Підключення до SignalR
 document.getElementById("joinBtn").addEventListener("click", async () => {
     const user = document.getElementById("userName").value || "Гість";
-    const meetingId = "test-meeting-123";
+    
+    // Читаємо параметр ?room=... з поточного URL браузера
+    const urlParams = new URLSearchParams(window.location.search);
+    let meetingId = urlParams.get('room');
+
+    // Якщо посилання без кімнати (користувач просто зайшов на сайт)
+    if (!meetingId) {
+        alert("Ви не вказали кімнату! Будь ласка, перейдіть за правильним посиланням.");
+        return;
+    }
     
     try {
         if (connection.state === signalR.HubConnectionState.Disconnected) {
             await connection.start();
         }
         await connection.invoke("JoinMeeting", meetingId, user);
-        console.log("Приєднано до кімнати.");
+        console.log(`Приєднано до кімнати: ${meetingId}`);
     } catch (err) {
         console.error("Помилка SignalR:", err);
     }
 });
+
+// Додаємо логіку перевірки URL при завантаженні сторінки
+window.onload = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.has('room')) {
+        document.querySelector('h2').innerText = "Головна сторінка (Тут буде лобі)";
+        // У майбутньому тут можна додати кнопку "Створити зустріч", 
+        // яка робитиме POST запит на /api/meetings і перенаправлятиме користувача
+    } else {
+        document.querySelector('h2').innerText = `Кімната: ${urlParams.get('room')}`;
+    }
+};
 
 // 4. Від'єднання
 document.getElementById("disconnectBtn").addEventListener("click", async () => {
@@ -146,6 +170,38 @@ connection.on("UserJoined", async (user, newConnectionId) => {
     await peerConnection.setLocalDescription(offer);
     
     connection.invoke("SendSignal", JSON.stringify({ type: "offer", data: offer }), newConnectionId);
+});
+
+// 7. Створення зустрічі
+document.getElementById("createMeetingBtn").addEventListener("click", async () => {
+    const title = document.getElementById("meetingTitle").value || "Нова зустріч";
+    
+    // Оскільки у нас ще немає авторизації, використовуємо будь-який GUID для тесту
+    const dummyOrganizerId = "00000000-0000-0000-0000-000000000000"; 
+
+    try {
+        const response = await fetch("/api/meetings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                organizerId: dummyOrganizerId,
+                title: title
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log("Зустріч створена:", data.link);
+            
+            window.location.href = data.link;
+        } else {
+            const errorData = await response.json();
+            alert("Помилка створення: " + JSON.stringify(errorData));
+        }
+    } catch (err) {
+        console.error("Помилка запиту:", err);
+        alert("Не вдалося зв'язатися з сервером.");
+    }
 });
 
 connection.on("ReceiveSignal", async (signalString, senderId) => {

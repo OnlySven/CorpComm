@@ -7,6 +7,7 @@ public class ApplicationDbContext : DbContext
 {
     public DbSet<User> Users => Set<User>();
     public DbSet<Meeting> Meetings => Set<Meeting>();
+    public DbSet<Invitation> Invitations => Set<Invitation>();
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) 
         : base(options) { }

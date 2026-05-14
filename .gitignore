@@ -1,5 +1,48 @@
+### --- Вже наявні у тебе ---
 bin/
 obj/
 .vs/
 .vscode/
 *.user
+appsettings.json
+
+### --- .NET Specific ---
+# Видаляємо результати публікації
+publish/
+# Файли з секретами розробки (не плутати з базовим appsettings.Development.json)
+secrets.json
+# Локальні налаштування Rider/JetBrains (якщо хтось буде використовувати)
+.idea/
+
+### --- Node/React Specific (Дуже важливо!) ---
+# Папка з тисячами залежностей. НІКОЛИ не повинна бути в Git.
+node_modules/
+# Результат збірки фронтенду
+dist/
+# Логи помилок npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+# Локальні змінні оточення (де ти будеш зберігати свій IP для LiveKit)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+### --- Docker ---
+# Локальні дані баз даних (якщо ти примонтував волюми до локальних папок)
+docker_data/
+*.log
+
+### --- OS Specific ---
+# Windows
+Thumbs.db
+desktop.ini
+# macOS
+.DS_Store
+
+### --- Certificates ---
+# Локальні SSL сертифікати розробки
+*.pfx
+*.pem

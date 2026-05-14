@@ -23,6 +23,16 @@ services:
     volumes:
       - redis_data:/data
     restart: unless-stopped
+  
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: corpcomm_livekit
+    command: '--dev --bind 0.0.0.0 --node-ip=127.0.0.1 --keys "devkey: secret_key_for_development_128_bits"'
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "7882:7882/udp"
+    restart: unless-stopped
 
 volumes:
   postgres_data:

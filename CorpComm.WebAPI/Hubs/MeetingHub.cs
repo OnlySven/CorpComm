@@ -9,8 +9,8 @@ public class MeetingHub : Hub
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, meetingId);
         
-        // Повідомляємо інших учасників кімнати, що хтось приєднався
-        await Clients.Group(meetingId).SendAsync("UserJoined", userName, Context.ConnectionId);
+        // Використовуємо OthersInGroup замість Group
+        await Clients.OthersInGroup(meetingId).SendAsync("UserJoined", userName, Context.ConnectionId);
     }
 
     // Метод для обміну WebRTC кандидатами (Signaling)
